@@ -11,7 +11,7 @@ try
 }
 catch (PDOException $e)
 {
-    header('Status: 500 Internal Server Error');
+    header('Status: 500 Internal Server Error (DB)');
     exit;
 }
 
@@ -21,7 +21,8 @@ try
 }
 catch (Exception $e)
 {
-    header('Status: 500 Internal Server Error');
+    header('Status: 500 Internal Server Error (Backend)');
+    exit;
 }
 
 jsonRPCServer::handle($smsSender);
