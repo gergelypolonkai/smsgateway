@@ -2,12 +2,13 @@
 require_once 'jsonRPCServer.php';
 require_once 'smsSender.php';
 require_once 'postgresGatewayBackend.php';
+require_once 'gnokiiSMSBackend.php';
 
 session_start();
 
 try
 {
-    $backend = new postgresGatewayBackend('localhost', 'sms_gateway', 'quaiy8Zu', 'sms_gateway');
+    $dbBackend = new postgresGatewayBackend('localhost', 'sms_gateway', 'quaiy8Zu', 'sms_gateway');
 }
 catch (PDOException $e)
 {
@@ -17,11 +18,21 @@ catch (PDOException $e)
 
 try
 {
-    $smsSender = new smsSender(session_id(), $backend);
+    $smsBackend = new gnokiiSMSBackend();
 }
 catch (Exception $e)
 {
-    header('Status: 500 Internal Server Error (Backend)');
+    header('Status: 500 Internal Server Error (SMS)');
+    exit;
+}
+
+try
+{
+    $smsSender = new smsSender($dbBackend, $smsBackend, session_id());
+}
+catch (Exception $e)
+{
+    header('Status: 500 Internal Server Error');
     exit;
 }
 

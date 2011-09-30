@@ -23,22 +23,12 @@ interface gatewayBackend
         /**
          * removeToken() Remove a logged out user's token
          * 
+         * @param String $ip
+         * @param String $sessionId
          * @param String $token
          */
-        public function removeToken($token);
+        public function removeToken($ip, $sessionId, $token);
 
-	/**
-         * sendSMS()
-         * 
-         * Send SMS message to recipient's phone number
-	 * @param String $token
-         * @param String $recipient
-         * @param String $message
-         * @param Array $passwordLocations
-         * @return Boolean
-	 */
-	public function sendSMS($token, $recipient, $message, $passwordLocations);
-        
         /**
          * auditLog() Log audit messages
          * 
@@ -51,10 +41,11 @@ interface gatewayBackend
         /**
          * messageLog() Log sent messages
          * 
-         * @param String $recipient
-         * @param String $message
-         * @param String $ip
+         * @param Integer $senderId
+         * @param String  $recipient
+         * @param String  $message
+         * @param String  $ip
          */
-        public function messageLog($recipient, $message, $ip);
+        public function messageLog($senderId, $recipient, $message, $ip);
 }
 
