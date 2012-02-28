@@ -47,7 +47,8 @@ class jsonRPCServer {
 		}
 				
 		// reads the input data
-		$request = json_decode(file_get_contents('php://input'),true);
+		$request_string = file_get_contents('php://input');
+		$request = json_decode($request_string,true);
 		
 		// executes the task on local object
 		try {

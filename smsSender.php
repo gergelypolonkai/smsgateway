@@ -6,6 +6,7 @@ class smsSender
     protected $sessionId = null;
     protected $dbBackend;
     protected $smsBackend;
+    const password_mask = '<masked password>';
 
     public function __construct($dbBackend, $smsBackend, $sessionId)
     {
@@ -66,9 +67,11 @@ class smsSender
     {
         $msg = $message;
 
+        $mod = 0;
         foreach ($passwordLocations as $loc)
         {
-            $msg = substr_replace($msg, '<masked password>', $loc[0], $loc[1]);
+            $msg = substr_replace($msg, self::password_mask, $loc[0] + $mod, $loc[1]);
+            $mod += (strlen(self::password_mask) - $loc[1]);
         }
 
         return $msg;
