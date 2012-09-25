@@ -1,0 +1,19 @@
+{
+    "name": "gergelypolonkai/smsgateway",
+    "description": "A JSON-RPC based SMS gateway",
+    "autoload": {
+    	"psr-0": { "": "src/" }
+    },
+    "require": {
+        "symfony/class-loader": "v2.1.2",
+        "symfony/http-foundation": "v2.1.2",
+        "symfony/routing": "v2.1.2"
+    },
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Gergely Polonkai",
+            "email": "gergely@polonkai.eu"
+        }
+    ]
+}
