@@ -3,7 +3,7 @@ namespace SmsGateway;
 
 use Symfony\Component\HttpFoundation\Request;
 
-use SmsGateway\BackendInterface;
+use SmsGateway\AuthInterface;
 use SmsGateway\LoggerInterface;
 use SmsGateway\SenderInterface;
 
@@ -12,9 +12,9 @@ class RpcServer
     /**
      * The user backend
      *
-     * @var SmsGateway\BackendInterface $backend
+     * @var SmsGateway\AuthInterface $backend
      */
-    private $backend;
+    private $auth;
 
     /**
      * The logger
@@ -30,23 +30,46 @@ class RpcServer
      */
     private $sender;
 
-    public function __construct(BackendInterface $backend, LoggerInterface $logger, SenderInterface $sender)
+    public function __construct(AuthInterface $auth, LoggerInterface $logger, SenderInterface $sender)
     {
+        $this->auth = $auth;
+        $this->logger = $logger;
+        $this->sender = $sender;
     }
 
-    protected function login(array $params)
+    protected function login($username, $password)
     {
-        return true;
+        $token = $this->auth->authenticate($username, $password, $_SERVER['REMOTE_ADDR'], null);
+
+        if ($token === false) {
+            throw new \Exception('Could not create token.');
+        }
+
+        return $token;
     }
 
-    protected function send(array $params)
+    protected function send($token, $recipient, $message, array $passwordLocations)
     {
-        return true;
+        if (!$this->auth->isTokenValid($token, $_SERVER['REMOTE_ADDR'], null)) {
+            throw new \Exception('Invalid token!');
+        }
+
+        $this->sender->send($this->auth->getTokenUsername($token, $_SERVER['REMOTE_ADDR'], null), $recipient, $message, $passwordLocations);
+
+        // TODO: Send the message!
+
+        return 'success';
     }
 
-    protected function logout(array $params)
+    protected function logout($token)
     {
-        return true;
+        if (!$this->auth->isTokenValid($token, $_SERVER['REMOTE_ADDR'], null)) {
+            throw new \Exception('Invalid token!');
+        }
+
+        $this->auth->removeToken($token, $_SERVER['REMOTE_ADDR'], null);
+
+        return 'success';
     }
 
     public function handle(Request $request, array $jsonData)
@@ -54,14 +77,34 @@ class RpcServer
         $params = $jsonData['params'];
         switch ($jsonData['method']) {
             case 'login':
+                if (count($params) != 2) {
+                    throw new \InvalidArgumentException('Bad parameter count!');
+                }
+
+                return $this->login($params[0], $params[1]);
+
                 break;
             case 'send':
+                if (count($params) != 4) {
+                    throw new \InvalidArgumentException('Bad parameter count!');
+                }
+                if (!is_array($params[3])) {
+                    throw new \InvalidArgumentException('Invalid 4th parameter!');
+                }
+
+                return $this->send($params[0], $params[1], $params[2], $params[3]);
+
                 break;
             case 'logout':
+                if (count($params) != 1) {
+                    throw new \InvalidArgumentException('Bad parameter count!');
+                }
+
+                return $this->logout($params[0]);
                 break;
             default:
-                    throw new \Exception('Invalid request');
+                throw new \BadMethodCallException('Unknown method ' . $jsonData['method']);
+                break;
         }
-        return 'ajaj';
     }
 }

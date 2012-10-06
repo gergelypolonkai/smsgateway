@@ -3,7 +3,7 @@ namespace SmsGateway;
 
 interface LoggerInterface
 {
-    const SMSSENDER_AUDIT_LOGIN = 1;
+    const LOG_AUDIT_LOGIN = 1;
 
     /**
      * Log an audit event
@@ -23,5 +23,5 @@ interface LoggerInterface
      * @param string  $recipient The recipient of the message
      * @param string  $message   The message itself
      */
-    public function messageLog($username, $recipient, $message);
+    public function messageLog($username, $recipient, $message, array $passwordLocations);
 }

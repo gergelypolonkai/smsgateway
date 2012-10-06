@@ -3,6 +3,10 @@ namespace SmsGateway;
 
 interface SenderInterface
 {
+    public function setLogger(LoggerInterface $logger);
+
+    public function getLogger();
+
     /**
      *
      * @param  string $recipient
@@ -10,5 +14,6 @@ interface SenderInterface
      * @return boolean           true upon success. On error, throws exceptions.
      * @throws Exception         Upon sending error. Gnokii output will be
      *                           stored in $e->message
-    public function send($recipient, $message);
+     */
+    public function send($username, $recipient, $message, $passwordLocations);
 }

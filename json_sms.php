@@ -10,9 +10,9 @@ use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 
-use SmsGateway\Sender\GnokiiSender;
-use SmsGateway\Logger\DatabaseLogger;
-use SmsGateway\Backend\DatabaseBackend;
+use SmsGateway\Sender\FileSender;
+use SmsGateway\Logger\FileLogger;
+use SmsGateway\Auth\FileAuth;
 use SmsGateway\RpcServer;
 
 $request = Request::createFromGlobals();
@@ -56,7 +56,7 @@ if (!array_key_exists('method', $jsonData) || !array_key_exists('params', $jsonD
 $wantResponse = (!empty($jsonData['id']));
 
 try {
-    $sender = new GnokiiSender();
+    $sender = new FileSender('/var/www/html/smsgateway/app/cache/sms_spool');
 } catch (Exception $e) {
     $response = new Response('Internal Server Error: Sender cannot be instantiated.', 500);
     $response->send();
@@ -64,22 +64,26 @@ try {
 }
 
 try {
-    $logger = new DatabaseLogger('pgsql:host=127.0.0.1;dbname=smsgateway', 'smsgateway', 'Imuiwai8');
-} catch (PDOException $e) {
+    $logger = new FileLogger('/var/www/html/smsgateway/app/logs/sms-message.log', '/var/www/html/smsgateway/app/logs/sms-audit.log');
+} catch (LogicException $e) {
     $response = new Response('Internal Server Error: Logger cannot be instantiated.', 500);
     $response->send();
     exit;
 }
 
 try {
-    $backend = new DatabaseBackend();
+    $auth = new FileAuth('/var/www/html/smsgateway/senders', '/var/www/html/smsgateway/app/cache/tokens');
 } catch (Exception $e) {
-    $response = new Response('Internal Server Error: Backend cannot be instantiated.', 500);
+    $response = new Response('Internal Server Error: Authenticator cannot be instantiated.', 500);
     $response->send();
     exit;
 }
 
-$handler = new RpcServer($backend, $logger, $sender);
+$auth->setLogger($logger);
+$sender->setLogger($logger);
+
+$handler = new RpcServer($auth, $logger, $sender);
+
 try {
     $result = $handler->handle($request, $jsonData);
 } catch (Exception $e) {
