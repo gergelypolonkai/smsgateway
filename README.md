@@ -16,3 +16,22 @@ Features
 * Logger backends for audit and message logging
  * DatabaseLogger for PDO based logging
  * FileLogger to log messages to files
+
+Installation
+------------
+
+SmsGateway can be installed using [composer](http://getcomposer.org/):
+
+    $ php composer.phar create-project gergelypolonkai/smsgateway
+
+
+Configuration
+-------------
+
+Currently, there are no configurable parts exist. My plans are:
+
+* File paths for FileSender, FileAuth and FileLogger (currently these are
+  hard-coded)
+* Executable path for GnokiiSender
+* Database parameters for DatabaseSender, DatabaseAuth and DatabaseLogger
+
