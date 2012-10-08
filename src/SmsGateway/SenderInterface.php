@@ -15,5 +15,5 @@ interface SenderInterface
      * @throws Exception         Upon sending error. Gnokii output will be
      *                           stored in $e->message
      */
-    public function send($username, $recipient, $message, $passwordLocations);
+    public function send($username, $recipient, $message, array $passwordLocations);
 }

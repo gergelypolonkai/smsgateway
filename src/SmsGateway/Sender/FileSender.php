@@ -51,7 +51,7 @@ class FileSender implements SenderInterface
         return $this->logger;
     }
 
-    public function send($username, $recipient, $message, $passwordLocations)
+    public function send($username, $recipient, $message, array $passwordLocations)
     {
         $rcptDir = $this->messageDir . '/' . $recipient;
 
