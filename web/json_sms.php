@@ -9,11 +9,36 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
+use Symfony\Component\Yaml\Yaml;
 
-use SmsGateway\Sender\FileSender;
-use SmsGateway\Logger\FileLogger;
-use SmsGateway\Auth\FileAuth;
 use SmsGateway\RpcServer;
+
+$configFile = __DIR__ . '/../app/config/config.yml';
+
+$globalConfig = Yaml::parse($configFile);
+if (!array_key_exists('sms_gateway', $globalConfig)) {
+    error_log($configFile . ' does not contain the sms_gateway level!');
+    die('Invalid configuration file!');
+}
+
+$config = $globalConfig['sms_gateway'];
+if (!array_key_exists('sender_class', $config)) {
+    error_log($configFile . ' does not specify sender_class!');
+    die('Invalid configuration file!');
+}
+$senderClass = $config['sender_class'];
+
+if (!array_key_exists('auth_class', $config)) {
+    error_log($configFile . ' does not specify auth_class!');
+    die('Invalid configuration file!');
+}
+$authClass = $config['auth_class'];
+
+if (!array_key_exists('logger_class', $config)) {
+    error_log($configFile . ' does not specify logger_class!');
+    die('Invalid configuration file!');
+}
+$loggerClass = $config['logger_class'];
 
 $request = Request::createFromGlobals();
 
@@ -56,7 +81,7 @@ if (!array_key_exists('method', $jsonData) || !array_key_exists('params', $jsonD
 $wantResponse = (!empty($jsonData['id']));
 
 try {
-    $sender = new FileSender('/var/www/html/smsgateway/app/cache/sms_spool');
+    $sender = new $senderClass('/var/www/html/smsgateway/app/cache/sms_spool');
 } catch (Exception $e) {
     $response = new Response('Internal Server Error: Sender cannot be instantiated.', 500);
     $response->send();
@@ -64,7 +89,7 @@ try {
 }
 
 try {
-    $logger = new FileLogger('/var/www/html/smsgateway/app/logs/sms-message.log', '/var/www/html/smsgateway/app/logs/sms-audit.log');
+    $logger = new $loggerClass('/var/www/html/smsgateway/app/logs/sms-message.log', '/var/www/html/smsgateway/app/logs/sms-audit.log');
 } catch (LogicException $e) {
     $response = new Response('Internal Server Error: Logger cannot be instantiated.', 500);
     $response->send();
@@ -72,7 +97,7 @@ try {
 }
 
 try {
-    $auth = new FileAuth('/var/www/html/smsgateway/senders', '/var/www/html/smsgateway/app/cache/tokens');
+    $auth = new $authClass('/var/www/html/smsgateway/senders', '/var/www/html/smsgateway/app/cache/tokens');
 } catch (Exception $e) {
     $response = new Response('Internal Server Error: Authenticator cannot be instantiated.', 500);
     $response->send();
